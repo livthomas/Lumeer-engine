@@ -374,7 +374,8 @@ public class DocumentService implements Serializable {
          throw new UnauthorizedAccessException();
       }
 
-      final List<DataDocument> docs = versionFacade.getDocumentVersions(collectionCode, documentId);
+      String databaseCollection = collectionFacade.getDatabaseCollectionNameByCode(collectionCode);
+      final List<DataDocument> docs = versionFacade.getDocumentVersions(databaseCollection, documentId);
       final List<DataDocument> convertedDocs = new ArrayList<>();
 
       for (final DataDocument doc : docs) {

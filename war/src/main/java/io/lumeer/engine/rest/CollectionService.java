@@ -348,7 +348,8 @@ public class CollectionService implements Serializable {
          throw new UnauthorizedAccessException();
       }
 
-      return searchFacade.search(collectionCode, dialect.documentFilter(filter == null ? "{}" : filter), dialect.documentSort(sort == null ? "{}" : sort), skip, limit);
+      String databaseCollection = collectionFacade.getDatabaseCollectionNameByCode(collectionCode);
+      return searchFacade.search(databaseCollection, dialect.documentFilter(filter == null ? "{}" : filter), dialect.documentSort(sort == null ? "{}" : sort), skip, limit);
    }
 
    /**

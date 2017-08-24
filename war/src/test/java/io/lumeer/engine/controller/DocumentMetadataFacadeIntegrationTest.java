@@ -71,11 +71,12 @@ public class DocumentMetadataFacadeIntegrationTest extends IntegrationTestBase {
          dataStorage.dropCollection(oldCode);
       }
       String code = collectionFacade.createCollection(new Collection(COLLECTION_GET_METADATA));
+      String databaseCollection = collectionFacade.getDatabaseCollectionNameByCode(code);
 
       DataDocument document = new DataDocument("a", 1).append("b", 2).append("c", 3);
       String documentId = documentFacade.createDocument(code, document);
 
-      Object metadataValue = documentMetadataFacade.getDocumentMetadata(code, documentId, LumeerConst.Document.CREATE_BY_USER_KEY);
+      Object metadataValue = documentMetadataFacade.getDocumentMetadata(databaseCollection, documentId, LumeerConst.Document.CREATE_BY_USER_KEY);
       assertThat(metadataValue).isNotNull();
    }
 
@@ -86,11 +87,12 @@ public class DocumentMetadataFacadeIntegrationTest extends IntegrationTestBase {
          dataStorage.dropCollection(oldCode);
       }
       String code = collectionFacade.createCollection(new Collection(COLLECTION_READ_METADATA));
+      String databaseCollection = collectionFacade.getDatabaseCollectionNameByCode(code);
 
       DataDocument document = new DataDocument("a", 1).append("b", 2).append("c", 3);
       String documentId = documentFacade.createDocument(code, document);
 
-      Map<String, Object> documentMetadata = documentMetadataFacade.readDocumentMetadata(code, documentId);
+      Map<String, Object> documentMetadata = documentMetadataFacade.readDocumentMetadata(databaseCollection, documentId);
 
       assertThat(documentMetadata).containsKey(LumeerConst.Document.CREATE_BY_USER_KEY);
       assertThat(documentMetadata).containsKey(LumeerConst.Document.CREATE_DATE_KEY);

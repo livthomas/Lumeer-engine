@@ -383,8 +383,10 @@ public class CollectionServiceIntegrationTest extends IntegrationTestBase {
       String code = collectionFacade.createCollection(new Collection(COLLECTION_QUERY_SEARCH));
       createDummyEntries(code); // size = 10
 
+      String databaseCollection = collectionFacade.getDatabaseCollectionNameByCode(code);
+
       final Client client = ClientBuilder.newBuilder().build();
-      final DataDocument queryDoc = queryDocument(code); // = "{\"find\":" + "\"" + getInternalName(COLLECTION_QUERY_SEARCH) + "\"}"
+      final DataDocument queryDoc = queryDocument(databaseCollection);
       final String queryJson = JSON.serialize(queryDoc);
       final String percentEncodedQuery = percentEncode(queryJson); // the best way to percent-encode a raw query
 

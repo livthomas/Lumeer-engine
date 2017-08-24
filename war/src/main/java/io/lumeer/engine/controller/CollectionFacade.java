@@ -31,7 +31,6 @@ import io.lumeer.engine.api.dto.Attribute;
 import io.lumeer.engine.api.dto.Collection;
 import io.lumeer.engine.api.exception.AttributeAlreadyExistsException;
 import io.lumeer.engine.api.exception.AttributeNotFoundException;
-import io.lumeer.engine.api.exception.CollectionNotFoundException;
 import io.lumeer.engine.api.exception.DbException;
 import io.lumeer.engine.api.exception.UserCollectionAlreadyExistsException;
 import io.lumeer.engine.util.ErrorMessageBuilder;
@@ -143,7 +142,6 @@ public class CollectionFacade implements Serializable {
          }
       }
 
-      dataStorage.createCollection(collectionCode);
       List<String> roleNames = new ArrayList<>(LumeerConst.Security.RESOURCE_ROLES.get(LumeerConst.Security.COLLECTION_RESOURCE));
       String collectionId = collectionMetadataFacade.createInitialMetadata(collectionCode, collection, userFacade.getUserEmail(), roleNames);
 
@@ -186,14 +184,15 @@ public class CollectionFacade implements Serializable {
     *       When there is an error working with the database.
     */
    public void dropCollection(final String collectionCode) throws DbException {
-      if (!dataStorage.hasCollection(collectionCode)) {
+      String databaseCollection = getDatabaseCollectionNameByCode(collectionCode);
+      if (!dataStorage.hasCollection(databaseCollection)) {
          return;
       }
 
       linkingFacade.dropLinksForCollection(collectionCode, null, LumeerConst.Linking.LinkDirection.FROM);
       linkingFacade.dropLinksForCollection(collectionCode, null, LumeerConst.Linking.LinkDirection.TO);
       collectionMetadataFacade.dropMetadata(collectionCode);
-      dataStorage.dropCollection(collectionCode);
+      dataStorage.dropCollection(databaseCollection);
       versionFacade.trashShadowCollection(collectionCode);
    }
 
@@ -240,11 +239,12 @@ public class CollectionFacade implements Serializable {
     *       name of the attribute to remove
     */
    public void dropAttribute(final String collectionCode, final String attributeName) {
+      String databaseCollection = getDatabaseCollectionNameByCode(collectionCode);
       collectionMetadataFacade.dropAttribute(collectionCode, attributeName);
       List<DataDocument> documents = documentFacade.getAllDocuments(collectionCode);
 
       for (DataDocument document : documents) {
-         dataStorage.dropAttribute(collectionCode, dataStorageDialect.documentIdFilter(document.getId()), attributeName);
+         dataStorage.dropAttribute(databaseCollection, dataStorageDialect.documentIdFilter(document.getId()), attributeName);
       }
 
       collectionMetadataFacade.setLastTimeUsedNow(collectionCode);
@@ -317,6 +317,15 @@ public class CollectionFacade implements Serializable {
    public void dropAttributeConstraint(final String collectionCode, final String attributeName, final String constraintConfiguration) {
       collectionMetadataFacade.dropAttributeConstraint(collectionCode, attributeName, constraintConfiguration);
       collectionMetadataFacade.setLastTimeUsedNow(collectionCode);
+   }
+
+   public String getDatabaseCollectionNameByCode(String collectionCode) {
+      String collectionId = collectionMetadataFacade.getCollectionId(collectionCode);
+      return documentCollection(collectionId);
+   }
+
+   private static String documentCollection(String collectionId) {
+      return LumeerConst.Document.COLLECTION_PREFIX + collectionId;
    }
 
    private static String generateCollectionCodeHash(String collectionName) {

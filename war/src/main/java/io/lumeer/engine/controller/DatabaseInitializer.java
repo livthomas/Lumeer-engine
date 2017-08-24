@@ -21,6 +21,7 @@ package io.lumeer.engine.controller;
 
 import io.lumeer.engine.annotation.SystemDataStorage;
 import io.lumeer.engine.annotation.UserDataStorage;
+import io.lumeer.engine.api.LumeerConst;
 import io.lumeer.engine.api.LumeerConst.Collection;
 import io.lumeer.engine.api.LumeerConst.Configuration;
 import io.lumeer.engine.api.LumeerConst.Group;
@@ -290,7 +291,12 @@ public class DatabaseInitializer {
     *       collection id
     */
    public void onCollectionCreated(final String projectCode, final String collectionId) {
+      initDocumentsCollection(collectionId);
       initCollectionRoles(projectCode, collectionId);
+   }
+
+   private void initDocumentsCollection(String collectionId) {
+      userDataStorage.createCollection(LumeerConst.Document.COLLECTION_PREFIX + collectionId);
    }
 
    /**

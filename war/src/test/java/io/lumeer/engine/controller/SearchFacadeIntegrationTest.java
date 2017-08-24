@@ -71,7 +71,8 @@ public class SearchFacadeIntegrationTest extends IntegrationTestBase {
          documentFacade.createDocument(code, insertedDocument);
       }
 
-      List<DataDocument> searchDocuments = searchFacade.search(code, null, null, 5, 5);
+      String databaseCollection = collectionFacade.getDatabaseCollectionNameByCode(code);
+      List<DataDocument> searchDocuments = searchFacade.search(databaseCollection, null, null, 5, 5);
 
       assertThat(searchDocuments).hasSize(5);
    }
@@ -85,7 +86,8 @@ public class SearchFacadeIntegrationTest extends IntegrationTestBase {
          documentFacade.createDocument(code, insertedDocument);
       }
 
-      String query = "{find: \"" + code + "\"}";
+      String databaseCollection = collectionFacade.getDatabaseCollectionNameByCode(code);
+      String query = "{find: \"" + databaseCollection + "\"}";
 
       List<DataDocument> searchDocuments = searchFacade.search(query);
 

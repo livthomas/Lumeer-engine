@@ -282,7 +282,8 @@ public class CollectionFacadeIntegrationTest extends IntegrationTestBase {
       final String collectionName = "CollectionFacadeCollectionDropCollectionAttribute";
       setUpCollection(collectionName);
 
-      String collection = collectionFacade.createCollection(new Collection(collectionName));
+      String collectionCode = collectionFacade.createCollection(new Collection(collectionName));
+      String collection = collectionFacade.getDatabaseCollectionNameByCode(collectionCode);
 
       String attribute1 = "attribute-to-drop";
       String attribute2 = "attribute";
@@ -304,11 +305,11 @@ public class CollectionFacadeIntegrationTest extends IntegrationTestBase {
 
       // we have to add attributes to metadata because we test them in getAttributeValues
       for (int i = 0; i < 3; i++) {
-         collectionMetadataFacade.addOrIncrementAttribute(collection, attribute1);
-         collectionMetadataFacade.addOrIncrementAttribute(collection, attribute2);
+         collectionMetadataFacade.addOrIncrementAttribute(collectionCode, attribute1);
+         collectionMetadataFacade.addOrIncrementAttribute(collectionCode, attribute2);
       }
 
-      collectionFacade.dropAttribute(collection, attribute1);
+      collectionFacade.dropAttribute(collectionCode, attribute1);
 
       List<DataDocument> documents = dataStorage.search(collection, null, null, 0, 0);
       for (int i = 0; i < 3; i++) {
@@ -353,7 +354,8 @@ public class CollectionFacadeIntegrationTest extends IntegrationTestBase {
       final String collectionName = "CollectionFacadeCollectionAddDropConstraint";
       setUpCollection(collectionName);
 
-      String collection = collectionFacade.createCollection(new Collection(collectionName));
+      String collectionCode = collectionFacade.createCollection(new Collection(collectionName));
+      String databaseCollection = collectionFacade.getDatabaseCollectionNameByCode(collectionCode);
 
       String attribute = "attribute";
       int value1 = 5;
@@ -362,19 +364,19 @@ public class CollectionFacadeIntegrationTest extends IntegrationTestBase {
 
       DataDocument doc1 = new DataDocument();
       doc1.put(attribute, value1);
-      dataStorage.createDocument(collection, doc1);
-      collectionMetadataFacade.addOrIncrementAttribute(collection, attribute);
+      dataStorage.createDocument(databaseCollection, doc1);
+      collectionMetadataFacade.addOrIncrementAttribute(collectionCode, attribute);
 
-      assertThat(collectionFacade.addAttributeConstraint(collection, attribute, constraint1)).isTrue();
-      collectionFacade.dropAttributeConstraint(collection, attribute, constraint1);
+      assertThat(collectionFacade.addAttributeConstraint(collectionCode, attribute, constraint1)).isTrue();
+      collectionFacade.dropAttributeConstraint(collectionCode, attribute, constraint1);
 
       DataDocument doc2 = new DataDocument();
       doc2.put(attribute, value2);
-      dataStorage.createDocument(collection, doc2);
-      collectionMetadataFacade.addOrIncrementAttribute(collection, attribute);
+      dataStorage.createDocument(databaseCollection, doc2);
+      collectionMetadataFacade.addOrIncrementAttribute(collectionCode, attribute);
 
       // result is false, because there is already a value (value2) not satisfying the constraint
-      assertThat(collectionFacade.addAttributeConstraint(collection, attribute, constraint1)).isFalse();
+      assertThat(collectionFacade.addAttributeConstraint(collectionCode, attribute, constraint1)).isFalse();
    }
 
    private boolean isEveryDocumentFilledByNewAttribute(String collection, String attributeName) {

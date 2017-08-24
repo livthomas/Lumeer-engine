@@ -72,6 +72,7 @@ public class DocumentFacadeIntegrationTest extends IntegrationTestBase {
    @Test
    public void testCreateAndDropDocument() throws Exception {
       String coll = setUpCollection(COLLECTION_CREATE_AND_DROP);
+      String databaseCollection = collectionFacade.getDatabaseCollectionNameByCode(coll);
 
       DataDocument document = new DataDocument();
       String documentId = documentFacade.createDocument(coll, document);
@@ -79,7 +80,7 @@ public class DocumentFacadeIntegrationTest extends IntegrationTestBase {
       assertThat(inserted).isNotNull();
 
       documentFacade.dropDocument(coll, documentId);
-      assertThat(dataStorage.readDocument(coll, dataStorageDialect.documentIdFilter(documentId))).isNull();
+      assertThat(dataStorage.readDocument(databaseCollection, dataStorageDialect.documentIdFilter(documentId))).isNull();
    }
 
    @Test
@@ -146,6 +147,7 @@ public class DocumentFacadeIntegrationTest extends IntegrationTestBase {
    @Test
    public void testReadAndUpdateDocument() throws Exception {
       String coll = setUpCollection(COLLECTION_READ_AND_UPDATE);
+      String databaseCollection = collectionFacade.getDatabaseCollectionNameByCode(coll);
 
       DataDocument document = new DataDocument(DUMMY_KEY1, DUMMY_VALUE1);
       String documentId = documentFacade.createDocument(coll, document);
@@ -158,7 +160,7 @@ public class DocumentFacadeIntegrationTest extends IntegrationTestBase {
       String changed = DUMMY_VALUE1 + "_changed";
       inserted.put(DUMMY_KEY1, changed);
       documentFacade.updateDocument(coll, inserted);
-      DataDocument updated = dataStorage.readDocument(coll, dataStorageDialect.documentIdFilter(documentId));
+      DataDocument updated = dataStorage.readDocument(databaseCollection, dataStorageDialect.documentIdFilter(documentId));
       assertThat(updated).isNotNull();
       assertThat(updated.getString(DUMMY_KEY1)).isEqualTo(changed);
    }
@@ -166,6 +168,7 @@ public class DocumentFacadeIntegrationTest extends IntegrationTestBase {
    @Test
    public void testGetAttributes() throws Exception {
       String coll = setUpCollection(COLLECTION_GETATTRS_AND_DROPATTR);
+      String databaseCollection = collectionFacade.getDatabaseCollectionNameByCode(coll);
 
       DataDocument document = new DataDocument("a", 1)
             .append("b", 2)
@@ -174,7 +177,7 @@ public class DocumentFacadeIntegrationTest extends IntegrationTestBase {
             .append("d", new DataDocument("dd", new DataDocument("ddd", new DataDocument("dddd", new DataDocument("ddddd", 1)
                   .append("ddddd2", 2)))));
 
-      String docId = dataStorage.createDocument(coll, document);
+      String docId = dataStorage.createDocument(databaseCollection, document);
 
       Set<String> attrs = documentFacade.getDocumentAttributes(coll, docId);
       assertThat(attrs).containsOnly("_id", "a", "b", "c", "d", "c.cc", "c.dd", "d.dd", "d.dd.ddd", "d.dd.ddd.dddd", "d.dd.ddd.dddd.ddddd", "d.dd.ddd.dddd.ddddd2");
@@ -193,10 +196,6 @@ public class DocumentFacadeIntegrationTest extends IntegrationTestBase {
    }
 
    private String setUpCollection(final String collectionName) throws DbException {
-      String collectionCode = collectionMetadataFacade.getCollectionCodeFromName(collectionName);
-      if(collectionCode != null) {
-         dataStorage.dropCollection(collectionCode);
-      }
       return collectionFacade.createCollection(new Collection(collectionName));
    }
 

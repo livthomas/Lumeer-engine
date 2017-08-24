@@ -126,7 +126,6 @@ public class SearchServiceIntegrationTest extends IntegrationTestBase {
 
    @Test
    public void testRunQuery() throws Exception {
-      setUpCollections(COLLECTION_QUERY_SEARCH);
       final Client client = ClientBuilder.newBuilder().build();
       final int limit = 5;
       final DataDocument emptyFilters = new DataDocument();
@@ -137,7 +136,8 @@ public class SearchServiceIntegrationTest extends IntegrationTestBase {
       createDummyEntries(code);
 
       final Set<String> collections = new HashSet<>();
-      collections.add(code);
+      String databaseCollection = collectionFacade.getDatabaseCollectionNameByCode(code);
+      collections.add(databaseCollection);
       final Query query = new Query(collections, emptyFilters, emptyProjection, emptySorting, limit, null);
       Response response = client.target(TARGET_URI).path(buildPathPrefix()).path(QUERY_PATH).request().buildPost(Entity.entity(query, MediaType.APPLICATION_JSON)).invoke();
       List<DataDocument> matchResult = response.readEntity(new GenericType<List<DataDocument>>() {
@@ -151,12 +151,6 @@ public class SearchServiceIntegrationTest extends IntegrationTestBase {
    private void createDummyEntries(final String collectionCode) throws DbException, InvalidConstraintException {
       for (int i = 0; i < 10; i++) {
          documentFacade.createDocument(collectionCode, new DataDocument("dummyAttribute", i));
-      }
-   }
-
-   private void setUpCollections(final String collectionName) throws DbException {
-      if (dataStorage.hasCollection(collectionName)) {
-         collectionFacade.dropCollection(collectionName);
       }
    }
 
