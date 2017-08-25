@@ -33,13 +33,10 @@ import io.lumeer.core.AuthenticatedUser;
 import io.lumeer.core.model.SimplePermission;
 import io.lumeer.engine.IntegrationTestBase;
 import io.lumeer.storage.api.dao.OrganizationDao;
-import io.lumeer.storage.api.dao.UserDao;
 import io.lumeer.storage.api.exception.ResourceNotFoundException;
-import io.lumeer.storage.mongodb.model.MongoUser;
 
 import org.assertj.core.api.SoftAssertions;
 import org.jboss.arquillian.junit.Arquillian;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -57,9 +54,6 @@ public class OrganizationFacadeIntegrationTest extends IntegrationTestBase {
    @Inject
    private OrganizationFacade organizationFacade;
 
-   @Inject
-   private UserDao userDao;
-
    private static final String USER = AuthenticatedUser.DEFAULT_EMAIL;
    private static final String GROUP = "testGroup";
 
@@ -76,13 +70,6 @@ public class OrganizationFacadeIntegrationTest extends IntegrationTestBase {
    static {
       USER_PERMISSION = new SimplePermission(USER, Organization.ROLES);
       GROUP_PERMISSION = new SimplePermission(GROUP, Collections.singleton(Role.READ));
-   }
-
-   @Before
-   public void configureOrganization() {
-      MongoUser user = new MongoUser();
-      user.setUsername(USER);
-      userDao.createUser(user);
    }
 
    @Test

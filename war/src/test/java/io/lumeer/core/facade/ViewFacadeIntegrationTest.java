@@ -25,6 +25,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import io.lumeer.api.dto.JsonQuery;
 import io.lumeer.api.dto.JsonView;
+import io.lumeer.api.model.Pagination;
 import io.lumeer.api.model.Permission;
 import io.lumeer.api.model.Permissions;
 import io.lumeer.api.model.Perspective;
@@ -41,9 +42,9 @@ import io.lumeer.storage.api.dao.ProjectDao;
 import io.lumeer.storage.api.dao.UserDao;
 import io.lumeer.storage.api.dao.ViewDao;
 import io.lumeer.storage.api.exception.ResourceNotFoundException;
-import io.lumeer.storage.mongodb.model.MongoOrganization;
-import io.lumeer.storage.mongodb.model.MongoProject;
-import io.lumeer.storage.mongodb.model.MongoUser;
+import io.lumeer.storage.mongodb.model.MorphiaOrganization;
+import io.lumeer.storage.mongodb.model.MorphiaProject;
+import io.lumeer.storage.mongodb.model.MorphiaUser;
 import io.lumeer.storage.mongodb.model.embedded.MongoPermissions;
 
 import org.assertj.core.api.SoftAssertions;
@@ -106,26 +107,26 @@ public class ViewFacadeIntegrationTest extends IntegrationTestBase {
 
    @Before
    public void configureProject() {
-      MongoUser user = new MongoUser();
-      user.setUsername(USER);
-      userDao.createUser(user);
-
-      MongoOrganization organization = new MongoOrganization();
+      MorphiaOrganization organization = new MorphiaOrganization();
       organization.setCode(ORGANIZATION_CODE);
       organization.setPermissions(new MongoPermissions());
       organizationDao.createOrganization(organization);
 
       projectDao.setOrganization(organization);
+      userDao.setOrganization(organization);
 
-      MongoProject project = new MongoProject();
+      MorphiaUser user = new MorphiaUser();
+      user.setUsername(USER);
+      userDao.createUser(user);
+
+      MorphiaProject project = new MorphiaProject();
       project.setCode(PROJECT_CODE);
-      project.setOrganizationId(organization.getId());
       project.setPermissions(new MongoPermissions());
-      Project returnedProject = projectDao.createProject(project);
+      Project storedProject = projectDao.createProject(project);
 
-      workspaceKeeper.setProject(PROJECT_CODE);
+      workspaceKeeper.setWorkspace(ORGANIZATION_CODE, PROJECT_CODE);
 
-      viewDao.setProject(returnedProject);
+      viewDao.setProject(storedProject);
    }
 
    private View prepareView(String code) {
@@ -212,7 +213,7 @@ public class ViewFacadeIntegrationTest extends IntegrationTestBase {
       createView(CODE);
       createView(CODE2);
 
-      assertThat(viewFacade.getAllViews())
+      assertThat(viewFacade.getViews(new Pagination(null, null)))
             .extracting(Resource::getCode).containsOnly(CODE, CODE2);
    }
 

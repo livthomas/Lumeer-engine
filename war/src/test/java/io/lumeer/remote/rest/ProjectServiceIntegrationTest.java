@@ -38,8 +38,8 @@ import io.lumeer.storage.api.dao.OrganizationDao;
 import io.lumeer.storage.api.dao.ProjectDao;
 import io.lumeer.storage.api.dao.UserDao;
 import io.lumeer.storage.api.exception.ResourceNotFoundException;
-import io.lumeer.storage.mongodb.model.MongoOrganization;
-import io.lumeer.storage.mongodb.model.MongoUser;
+import io.lumeer.storage.mongodb.model.MorphiaOrganization;
+import io.lumeer.storage.mongodb.model.MorphiaUser;
 import io.lumeer.storage.mongodb.model.embedded.MongoPermissions;
 
 import org.assertj.core.api.SoftAssertions;
@@ -62,7 +62,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 
 @RunWith(Arquillian.class)
-public class ProjectServiceIntegrationTest extends ServiceIntegrationTestBase  {
+public class ProjectServiceIntegrationTest extends ServiceIntegrationTestBase {
 
    private static final String USER = AuthenticatedUser.DEFAULT_EMAIL;
    private static final String GROUP = "testGroup";
@@ -97,16 +97,17 @@ public class ProjectServiceIntegrationTest extends ServiceIntegrationTestBase  {
 
    @Before
    public void configureProject() {
-      MongoUser user = new MongoUser();
-      user.setUsername(USER);
-      userDao.createUser(user);
-
-      MongoOrganization organization = new MongoOrganization();
+      MorphiaOrganization organization = new MorphiaOrganization();
       organization.setCode(ORGANIZATION_CODE);
       organization.setPermissions(new MongoPermissions());
-      Organization returnedOrganization = organizationDao.createOrganization(organization);
+      Organization storedOrganization = organizationDao.createOrganization(organization);
 
-      projectDao.setOrganization(returnedOrganization);
+      projectDao.setOrganization(storedOrganization);
+      userDao.setOrganization(storedOrganization);
+
+      MorphiaUser user = new MorphiaUser();
+      user.setUsername(USER);
+      userDao.createUser(user);
    }
 
    private Project createProject(String code) {
@@ -247,7 +248,6 @@ public class ProjectServiceIntegrationTest extends ServiceIntegrationTestBase  {
       assertions.assertAll();
    }
 
-
    @Test
    public void testGetProjectPermissions() {
       createProject(CODE1);
@@ -276,7 +276,8 @@ public class ProjectServiceIntegrationTest extends ServiceIntegrationTestBase  {
       assertThat(response).isNotNull();
       assertThat(response.getStatusInfo()).isEqualTo(Response.Status.OK);
 
-      Set<JsonPermission> returnedPermissions = response.readEntity(new GenericType<Set<JsonPermission>>() {});
+      Set<JsonPermission> returnedPermissions = response.readEntity(new GenericType<Set<JsonPermission>>() {
+      });
       assertThat(returnedPermissions).isNotNull().hasSize(1);
       assertPermissions(Collections.unmodifiableSet(returnedPermissions), userPermission);
 
@@ -315,7 +316,8 @@ public class ProjectServiceIntegrationTest extends ServiceIntegrationTestBase  {
       assertThat(response).isNotNull();
       assertThat(response.getStatusInfo()).isEqualTo(Response.Status.OK);
 
-      Set<JsonPermission> returnedPermissions = response.readEntity(new GenericType<Set<JsonPermission>>() {});
+      Set<JsonPermission> returnedPermissions = response.readEntity(new GenericType<Set<JsonPermission>>() {
+      });
       assertThat(returnedPermissions).isNotNull().hasSize(1);
       assertPermissions(Collections.unmodifiableSet(returnedPermissions), groupPermission);
 

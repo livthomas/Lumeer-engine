@@ -27,7 +27,6 @@ import org.mongodb.morphia.annotations.Property;
 
 import java.util.HashSet;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @Embedded
 public class MongoPermission implements Permission {
@@ -51,9 +50,7 @@ public class MongoPermission implements Permission {
 
    public MongoPermission(final Permission entity) {
       this.name = entity.getName();
-      this.roles = entity.getRoles().stream()
-                         .map(Role::toString)
-                         .collect(Collectors.toSet());
+      this.roles = Role.toStringRoles(entity.getRoles());
    }
 
    @Override
@@ -63,9 +60,7 @@ public class MongoPermission implements Permission {
 
    @Override
    public Set<Role> getRoles() {
-      return roles.stream()
-                  .map(Role::fromString)
-                  .collect(Collectors.toSet());
+      return Role.fromStringRoles(roles);
    }
 
    public void setName(final String name) {

@@ -27,6 +27,7 @@ import io.lumeer.api.dto.JsonPermission;
 import io.lumeer.api.dto.JsonPermissions;
 import io.lumeer.api.dto.JsonQuery;
 import io.lumeer.api.dto.JsonView;
+import io.lumeer.api.model.Organization;
 import io.lumeer.api.model.Permission;
 import io.lumeer.api.model.Permissions;
 import io.lumeer.api.model.Perspective;
@@ -41,9 +42,9 @@ import io.lumeer.storage.api.dao.ProjectDao;
 import io.lumeer.storage.api.dao.UserDao;
 import io.lumeer.storage.api.dao.ViewDao;
 import io.lumeer.storage.api.exception.ResourceNotFoundException;
-import io.lumeer.storage.mongodb.model.MongoOrganization;
-import io.lumeer.storage.mongodb.model.MongoProject;
-import io.lumeer.storage.mongodb.model.MongoUser;
+import io.lumeer.storage.mongodb.model.MorphiaOrganization;
+import io.lumeer.storage.mongodb.model.MorphiaProject;
+import io.lumeer.storage.mongodb.model.MorphiaUser;
 import io.lumeer.storage.mongodb.model.embedded.MongoPermissions;
 
 import org.assertj.core.api.SoftAssertions;
@@ -111,23 +112,24 @@ public class ViewServiceIntegrationTest extends ServiceIntegrationTestBase {
 
    @Before
    public void configureProject() {
-      MongoUser user = new MongoUser();
+      MorphiaOrganization organization = new MorphiaOrganization();
+      organization.setCode(ORGANIZATION_CODE);
+      organization.setPermissions(new MongoPermissions());
+      Organization storedOrganization = organizationDao.createOrganization(organization);
+
+      projectDao.setOrganization(storedOrganization);
+      userDao.setOrganization(storedOrganization);
+
+      MorphiaUser user = new MorphiaUser();
       user.setUsername(USER);
       userDao.createUser(user);
 
-      MongoOrganization organization = new MongoOrganization();
-      organization.setCode(ORGANIZATION_CODE);
-      organization.setPermissions(new MongoPermissions());
-      organizationDao.createOrganization(organization);
-
-      MongoProject project = new MongoProject();
+      MorphiaProject project = new MorphiaProject();
       project.setCode(PROJECT_CODE);
       project.setPermissions(new MongoPermissions());
-      project.setOrganizationId(organization.getId());
-      projectDao.setOrganization(organization);
-      Project returnedProject = projectDao.createProject(project);
+      Project storedProject = projectDao.createProject(project);
 
-      viewDao.setProject(returnedProject);
+      viewDao.setProject(storedProject);
    }
 
    private View prepareView(String code) {

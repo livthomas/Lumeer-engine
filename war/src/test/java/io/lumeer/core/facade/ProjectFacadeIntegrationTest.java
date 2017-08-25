@@ -38,8 +38,8 @@ import io.lumeer.storage.api.dao.OrganizationDao;
 import io.lumeer.storage.api.dao.ProjectDao;
 import io.lumeer.storage.api.dao.UserDao;
 import io.lumeer.storage.api.exception.ResourceNotFoundException;
-import io.lumeer.storage.mongodb.model.MongoOrganization;
-import io.lumeer.storage.mongodb.model.MongoUser;
+import io.lumeer.storage.mongodb.model.MorphiaOrganization;
+import io.lumeer.storage.mongodb.model.MorphiaUser;
 import io.lumeer.storage.mongodb.model.embedded.MongoPermissions;
 
 import org.assertj.core.api.Assertions;
@@ -92,7 +92,6 @@ public class ProjectFacadeIntegrationTest extends IntegrationTestBase {
       GROUP_PERMISSION = new SimplePermission(GROUP, Collections.singleton(Role.READ));
    }
 
-
    private Project createProject(String code) {
       Project project = new JsonProject(code, NAME, ICON, COLOR);
       project.getPermissions().updateUserPermissions(USER_PERMISSION);
@@ -102,19 +101,19 @@ public class ProjectFacadeIntegrationTest extends IntegrationTestBase {
 
    @Before
    public void configureProject() {
-      MongoUser user = new MongoUser();
+      MorphiaOrganization organization = new MorphiaOrganization();
+      organization.setCode(ORGANIZATION_CODE);
+      organization.setPermissions(new MongoPermissions());
+      Organization storedOrganization = organizationDao.createOrganization(organization);
+
+      userDao.setOrganization(storedOrganization);
+      projectDao.setOrganization(storedOrganization);
+
+      MorphiaUser user = new MorphiaUser();
       user.setUsername(USER);
       userDao.createUser(user);
 
-
-      MongoOrganization organization = new MongoOrganization();
-      organization.setCode(ORGANIZATION_CODE);
-      organization.setPermissions(new MongoPermissions());
-      Organization returnedOrganization = organizationDao.createOrganization(organization);
-
       workspaceKeeper.setOrganization(ORGANIZATION_CODE);
-
-      projectDao.setOrganization(returnedOrganization);
    }
 
    @Test
